@@ -4,6 +4,25 @@ FastAPI-controlled Bluetooth LED ambient lighting. The project samples the scree
 
 The goal is to make the LEDs behave like a lightweight visual extension of the screen. Instead of always sending raw screen colors, the controller can switch between different modes depending on the content style: direct screen matching, stronger anime-style colors, or movie-specific color palettes.
 
+## Visual Overview
+
+```mermaid
+flowchart LR
+    Screen[Screen capture] --> Sample[Weighted center color sample]
+    Sample --> Mode{Selected mode}
+    Mode -->|screen| Raw[Use screen color]
+    Mode -->|anime| Anime[Boost saturation and contrast]
+    Mode -->|movie| Palette[Match closest movie palette color]
+    Raw --> Packet[RGB + brightness packet]
+    Anime --> Packet
+    Palette --> Packet
+    Packet --> Bluetooth[Bluetooth GATT write]
+    Bluetooth --> LEDs[LED device]
+    API[FastAPI endpoints] --> Mode
+    API --> Palette
+    API --> Bluetooth
+```
+
 ## Project Idea
 
 The controller is built around modes. Each mode takes the same screen sample but changes how the final LED color is selected:
@@ -21,6 +40,14 @@ Movie mode works by treating the screen color as a reference and then choosing t
 This keeps the lighting inside the chosen movie's color language. The LEDs still react to what is happening on the screen, but they are constrained to colors that match the movie mood. That is useful because many films have recognizable grading, such as cold blues, warm amber highlights, muted greens, or dark red shadows.
 
 The current version uses one average screen color, weighted toward the center of the screen. Center weighting helps because the main subject is often near the middle, so the LEDs respond more to important visual content and less to borders or UI elements.
+
+```mermaid
+flowchart TD
+    A[Current screen color] --> B[Compare against every palette color]
+    B --> C[Calculate RGB distance]
+    C --> D[Pick smallest distance]
+    D --> E[Send closest palette color to LEDs]
+```
 
 ## Files
 
@@ -189,7 +216,9 @@ Note: the new Bluetooth values are kept only while the script is running. Restar
 
 ## Demo
 
-The included WhatsApp video demonstrates the LED controller responding to screen changes and API-driven mode control.
+The included WhatsApp video demonstrates the LED controller responding to screen changes and API-driven mode control:
+
+[`WhatsApp Video 2026-05-25 at 4.44.04 AM.mp4`](WhatsApp%20Video%202026-05-25%20at%204.44.04%20AM.mp4)
 
 ## Future Updates
 
